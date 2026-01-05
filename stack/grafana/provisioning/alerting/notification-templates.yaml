@@ -1,0 +1,201 @@
+apiVersion: 1
+
+templates:
+  - orgId: 1
+    name: feishu_card
+    template: |
+      {
+        "msg_type": "interactive",
+        "card": {
+          "schema": "2.0",
+          "config": {
+            "update_multi": true
+          },
+          "header": {
+            "title": {
+              "tag": "plain_text",
+              "content": {{ if .CommonAnnotations.additionalA }}{{ printf "%q" .CommonAnnotations.additionalA }}{{ else }}{{ printf "%q" .GroupLabels.alertname }}{{ end }}
+            },
+            "icon": {
+              "tag": "standard_icon",
+              "token": "platform_outlined"
+            },
+            "text_tag_list": [
+              {
+                "tag": "text_tag",
+                "text": {
+                  "tag": "plain_text",
+                  "content": {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "紧急" }}{{ else }}{{ printf "%q" "告警" }}{{ end }}{{ else }}{{ printf "%q" "已恢复" }}{{ end }}
+                },
+                "color": {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "red" }}{{ else }}{{ printf "%q" "orange" }}{{ end }}{{ else }}{{ printf "%q" "green" }}{{ end }}
+              }
+            ],
+            "template": {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "red" }}{{ else }}{{ printf "%q" "orange" }}{{ end }}{{ else }}{{ printf "%q" "green" }}{{ end }},
+            "padding": "12px 8px 12px 8px"
+          },
+          "body": {
+            "direction": "vertical",
+            "elements": [
+              {
+                "tag": "column_set",
+                "flex_mode": "stretch",
+                "horizontal_spacing": "12px",
+                "horizontal_align": "left",
+                "columns": [
+                  {
+                    "tag": "column",
+                    "width": "weighted",
+                    "weight": 1,
+                    "elements": [
+                      {
+                        "tag": "markdown",
+                        "content": {{ if .CommonAnnotations.ruleUid }}{{ printf "%q" (printf "**告警指标**\n[%s](%salerting/grafana/%s/view)" .GroupLabels.alertname .ExternalURL .CommonAnnotations.ruleUid) }}{{ else }}{{ printf "%q" (printf "**告警指标**\n%s" .GroupLabels.alertname) }}{{ end }}
+                      }
+                    ],
+                    "vertical_spacing": "8px",
+                    "horizontal_align": "left",
+                    "vertical_align": "top"
+                  },
+                  {
+                    "tag": "column",
+                    "width": "weighted",
+                    "weight": 1,
+                    "elements": [
+                      {
+                        "tag": "markdown",
+                        "content": {{ if gt (len .Alerts) 0 }}{{ with index .Alerts 0 }}{{ printf "%q" (printf "**触发时间**\n%s" ((.StartsAt.Add 28800000000000).Format "2006-01-02 15:04:05")) }}{{ end }}{{ else }}{{ printf "%q" "**触发时间**\n暂无数据" }}{{ end }}
+                      }
+                    ],
+                    "vertical_spacing": "8px",
+                    "horizontal_align": "left",
+                    "vertical_align": "top"
+                  }
+                ],
+                "margin": "0px 0px 0px 0px"
+              }{{ if eq .Status "firing" }},
+              {
+                "tag": "column_set",
+                "flex_mode": "stretch",
+                "horizontal_spacing": "12px",
+                "horizontal_align": "left",
+                "columns": [
+                  {
+                    "tag": "column",
+                    "width": "weighted",
+                    "weight": 1,
+                    "background_style": "grey-50",
+                    "elements": [
+                      {
+                        "tag": "markdown",
+                        "content": {{ if .CommonLabels.severity }}{{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "## <font color='red'>严重</font>" }}{{ else if eq .CommonLabels.severity "warning" }}{{ printf "%q" "## <font color='orange'>警告</font>" }}{{ else }}{{ printf "%q" (printf "## <font color='grey'>%s</font>" .CommonLabels.severity) }}{{ end }}{{ else }}{{ printf "%q" "## <font color='orange'>警告</font>" }}{{ end }},
+                        "text_align": "center"
+                      },
+                      {
+                        "tag": "markdown",
+                        "content": "<font color='grey'>告警级别</font>",
+                        "text_align": "center",
+                        "text_size": "normal"
+                      }
+                    ],
+                    "padding": "12px 12px 12px 12px",
+                    "vertical_spacing": "2px",
+                    "horizontal_align": "left",
+                    "vertical_align": "top"
+                  },
+                  {
+                    "tag": "column",
+                    "width": "weighted",
+                    "weight": 1,
+                    "background_style": "grey-50",
+                    "elements": [
+                      {
+                        "tag": "markdown",
+                        "content": {{ if gt (len .Alerts) 0 }}{{ $alert := index .Alerts 0 }}{{ if $alert.Values }}{{ $v := index $alert.Values "B0" }}{{ if $v }}{{ if eq $.CommonAnnotations.unit "%" }}{{ if ge $v 80.0 }}{{ printf "%q" (printf "## <font color='red'>%.2f%%</font>" $v) }}{{ else if ge $v 50.0 }}{{ printf "%q" (printf "## <font color='orange'>%.2f%%</font>" $v) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f%%</font>" $v) }}{{ end }}{{ else if eq $.CommonAnnotations.unit "秒" }}{{ if ge $v 10.0 }}{{ printf "%q" (printf "## <font color='red'>%.2f秒</font>" $v) }}{{ else if ge $v 5.0 }}{{ printf "%q" (printf "## <font color='orange'>%.2f秒</font>" $v) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f秒</font>" $v) }}{{ end }}{{ else if eq $.CommonAnnotations.unit "次/秒" }}{{ printf "%q" (printf "## <font color='orange'>%.4f次/秒</font>" $v) }}{{ else if eq $.CommonAnnotations.unit "个请求" }}{{ printf "%q" (printf "## <font color='blue'>%.0f个</font>" $v) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f</font>" $v) }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-</font>" }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-</font>" }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-</font>" }}{{ end }},
+                        "text_align": "center"
+                      },
+                      {
+                        "tag": "markdown",
+                        "content": "<font color='grey'>当前值</font>",
+                        "text_align": "center",
+                        "text_size": "normal"
+                      }
+                    ],
+                    "padding": "12px 12px 12px 12px",
+                    "vertical_spacing": "2px",
+                    "horizontal_align": "left",
+                    "vertical_align": "top"
+                  },
+                  {
+                    "tag": "column",
+                    "width": "weighted",
+                    "weight": 1,
+                    "background_style": "grey-50",
+                    "elements": [
+                      {
+                        "tag": "markdown",
+                        "content": {{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "## <font color='red'>触发中</font>" }}{{ else }}{{ printf "%q" "## <font color='orange'>触发中</font>" }}{{ end }},
+                        "text_align": "center"
+                      },
+                      {
+                        "tag": "markdown",
+                        "content": "<font color='grey'>当前状态</font>",
+                        "text_align": "center",
+                        "text_size": "normal"
+                      }
+                    ],
+                    "padding": "12px 12px 12px 12px",
+                    "vertical_spacing": "2px",
+                    "horizontal_align": "left",
+                    "vertical_align": "top"
+                  }
+                ],
+                "margin": "8px 0px 8px 0px"
+              }{{ end }},
+              {
+                "tag": "markdown",
+                "content": {{ printf "%q" (printf "**告警描述**\n%s" .CommonAnnotations.description) }},
+                "margin": "4px 0px 4px 0px"
+              },
+              {
+                "tag": "markdown",
+                "content": {{ printf "%q" (printf "**建议操作**\n%s" .CommonAnnotations.summary) }},
+                "margin": "4px 0px 4px 0px"
+              },
+              {
+                "tag": "column_set",
+                "flex_mode": "stretch",
+                "horizontal_spacing": "8px",
+                "horizontal_align": "left",
+                "columns": [
+                  {
+                    "tag": "column",
+                    "width": "auto",
+                    "elements": [
+                      {
+                        "tag": "button",
+                        "text": {
+                          "tag": "plain_text",
+                          "content": "查看Grafana面板"
+                        },
+                        "type": "primary_filled",
+                        "width": "default",
+                        "behaviors": [
+                          {
+                            "type": "open_url",
+                            "default_url": {{ printf "%q" (printf "%sa/grafana-metricsdrilldown-app/drilldown?from=now-1h&to=now&timezone=browser&var-metrics_filters=&var-filters=&var-labelsWingman=&layout=grid&filters-rule=&filters-prefix=&filters-suffix=&search_txt=&var-metrics-reducer-sort-by=default&filters-recent=&var-ds=prometheus&var-other_metric_filters=&metric=%s&actionView=breakdown&var-groupby=$__all&breakdownLayout=grid" .ExternalURL .CommonAnnotations.metricName) }}
+                          }
+                        ],
+                        "margin": "4px 0px 4px 0px"
+                      }
+                    ],
+                    "vertical_spacing": "8px",
+                    "horizontal_align": "left",
+                    "vertical_align": "top"
+                  }
+                ],
+                "margin": "8px 0px 0px 0px"
+              }
+            ]
+          }
+        }
+      }

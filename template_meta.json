@@ -1,0 +1,237 @@
+{
+  "msg_type": "interactive",
+  "card": {
+      "schema": "2.0",
+      "config": {
+          "update_multi": true
+      },
+      "header": {
+          "title": {
+              "tag": "plain_text",
+              "content": "{{ .CommonAnnotations.aditionalA }}"
+          },
+          "subtitle": {
+              "tag": "plain_text",
+              "content": ""
+          },
+          "text_tag_list": [
+              {
+                  "tag": "text_tag",
+                  "text": {
+                      "tag": "plain_text",
+                      "content": "紧急"
+                  },
+                  "color": "red"
+              }
+          ],
+          "template": "red",
+          "padding": "12px 8px 12px 8px"
+      },
+      "body": {
+          "direction": "vertical",
+          "elements": [
+              {
+                  "tag": "column_set",
+                  "flex_mode": "stretch",
+                  "horizontal_spacing": "12px",
+                  "horizontal_align": "left",
+                  "columns": [
+                      {
+                          "tag": "column",
+                          "width": "weighted",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "{{ .CommonLabels.alertname }}"
+                              }
+                          ],
+                          "vertical_spacing": "8px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      },
+                      {
+                          "tag": "column",
+                          "width": "weighted",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "**触发时间**\n{{ with index .Alerts 0 }}{{ (.StartsAt | tz `Asia/Shanghai`).Format `2006-01-02 15:04:05` }}{{ end }}"
+                              }
+                          ],
+                          "vertical_spacing": "8px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      }
+                  ],
+                  "margin": "0px 0px 0px 0px"
+              },
+              {
+                  "tag": "column_set",
+                  "flex_mode": "stretch",
+                  "horizontal_spacing": "12px",
+                  "horizontal_align": "left",
+                  "columns": [
+                      {
+                          "tag": "column",
+                          "width": "weighted",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "**影响服务**\nAPI Gateway"
+                              }
+                          ],
+                          "vertical_spacing": "8px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      },
+                      {
+                          "tag": "column",
+                          "width": "weighted",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "**当前状态**\n持续触发中"
+                              }
+                          ],
+                          "vertical_spacing": "8px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      }
+                  ],
+                  "margin": "0px 0px 0px 0px"
+              },
+              {
+                  "tag": "column_set",
+                  "flex_mode": "stretch",
+                  "horizontal_spacing": "12px",
+                  "horizontal_align": "left",
+                  "columns": [
+                      {
+                          "tag": "column",
+                          "width": "weighted",
+                          "background_style": "grey-50",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "## <font color='red'>95.6%</font>",
+                                  "text_align": "center"
+                              },
+                              {
+                                  "tag": "markdown",
+                                  "content": "<font color='grey'>错误率</font>",
+                                  "text_align": "center",
+                                  "text_size": "normal"
+                              }
+                          ],
+                          "padding": "12px 12px 12px 12px",
+                          "vertical_spacing": "2px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      },
+                     {
+                          "tag": "column",
+                          "width": "weighted",
+                          "background_style": "grey-50",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "## <font color='orange'>{{ if gt (len .Alerts) 0 }} {{ with index .Alerts 0 }}{{ printf `%.1f` .Values.C }}s{{ end }}{{ end }}{{ if gt (len .Alerts) 1 }} {{ with index .Alerts 1 }}{{ printf `%.1f` .Values.C }}s{{ end }}{{ end }}</font>",
+                                  "text_align": "center"
+                              },
+                              {
+                                  "tag": "markdown",
+                                  "content": "<font color='grey'>平均响应时间</font>",
+                                  "text_align": "center",
+                                  "text_size": "normal"
+                              }
+                          ],
+                          "padding": "12px 12px 12px 12px",
+                          "vertical_spacing": "2px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      },
+                      {
+                          "tag": "column",
+                          "width": "weighted",
+                          "background_style": "grey-50",
+                          "elements": [
+                              {
+                                  "tag": "markdown",
+                                  "content": "## <font color='blue'>1.8k</font>",
+                                  "text_align": "center"
+                              },
+                              {
+                                  "tag": "markdown",
+                                  "content": "<font color='grey'>QPS</font>",
+                                  "text_align": "center",
+                                  "text_size": "normal"
+                              }
+                          ],
+                          "padding": "12px 12px 12px 12px",
+                          "vertical_spacing": "2px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top",
+                          "weight": 1
+                      }
+                  ],
+                  "margin": "0px 0px 0px 0px"
+              },
+              {
+                  "tag": "markdown",
+                  "content": "{{ .CommonAnnotations.description }}",
+                  "margin": "0px 0px 0px 0px"
+              },
+              {
+                  "tag": "markdown",
+                  "content": "**触发条件**\n- 错误率 > 5% 持续 5 分钟\n- 响应时间 > 1s 持续 5 分钟",
+                  "margin": "0px 0px 0px 0px"
+              },
+              {
+                  "tag": "markdown",
+                  "content": "{{ .CommonAnnotations.summary }}",
+                  "margin": "0px 0px 0px 0px"
+              },
+              {
+                  "tag": "column_set",
+                  "flex_mode": "stretch",
+                  "horizontal_spacing": "8px",
+                  "horizontal_align": "left",
+                  "columns": [
+                      {
+                          "tag": "column",
+                          "width": "auto",
+                          "elements": [
+                              {
+                                  "tag": "button",
+                                  "text": {
+                                      "tag": "plain_text",
+                                      "content": "查看Grafana面板"
+                                  },
+                                  "type": "primary_filled",
+                                  "width": "default",
+                                  "behaviors": [
+                                      {
+                                          "type": "open_url",
+                                          "default_url": "http://localhost:10002/a/grafana-metricsdrilldown-app/drilldown?from=now-1h&to=now&timezone=browser&var-metrics_filters=&var-filters=&var-labelsWingman=&layout=grid&filters-rule=&filters-prefix=&filters-suffix=&search_txt=&var-metrics-reducer-sort-by=default&filters-recent=&var-ds=prometheus&var-other_metric_filters="
+                                      }
+                                  ],
+                                  "margin": "4px 0px 4px 0px"
+                              }
+                          ],
+                          "vertical_spacing": "8px",
+                          "horizontal_align": "left",
+                          "vertical_align": "top"
+                      }
+                  ],
+                  "margin": "0px 0px 0px 0px"
+              }
+          ]
+      }
+  }
+}

@@ -1,0 +1,15 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: feishu-webhook
+    receivers:
+      - uid: feishu-webhook
+        type: webhook
+        settings:
+          url: input_your_feishu_webhook_url
+          httpMethod: POST
+          maxAlerts: 0
+          payload:
+            template: '{{ template "feishu_card" . }}'
+        disableResolveMessage: false

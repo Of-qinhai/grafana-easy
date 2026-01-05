@@ -1,0 +1,648 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: llm-metrics
+    folder: LLM
+    interval: 1m
+    rules:
+      - uid: llm-b94e7d988323
+        title: "llm_record_mq_write_error_count"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "sum(rate(llm_record_mq_write_error_count[5m]))"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.01
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 0m
+        annotations:
+          summary: "Redis Stream 写入失败，可能导致数据丢失"
+          description: "Redis Stream 写入失败累计次数；生产侧无法把事件写入 MQ，可能导致数据丢失。\n说明: 高优先级，立即告警\nPromQL: sum(rate(llm_record_mq_write_error_count[5m]))\nThreshold: gt 0.01"
+          additionalA: "Redis Stream 写入失败"
+          unit: "次/秒"
+          valueFormat: "%.4f"
+          metricName: "llm_record_mq_write_error_count"
+          ruleUid: "llm-b94e7d988323"
+        labels:
+          severity: critical
+          notify: feishu
+        isPaused: false
+      - uid: llm-98c31c52080f
+        title: "llm_record_temp_store_write_error_count"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "sum(rate(llm_record_temp_store_write_error_count[5m]))"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.01
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 0m
+        annotations:
+          summary: "临时存储写入失败，降级链路不可用"
+          description: "降级/缓存（临时存储）写入失败累计次数；通常意味着降级链路也不可用。\n说明: 高优先级，立即告警\nPromQL: sum(rate(llm_record_temp_store_write_error_count[5m]))\nThreshold: gt 0.01"
+          additionalA: "临时存储写入失败"
+          unit: "次/秒"
+          valueFormat: "%.4f"
+          metricName: "llm_record_temp_store_write_error_count"
+          ruleUid: "llm-98c31c52080f"
+        labels:
+          severity: critical
+          notify: feishu
+        isPaused: false
+      - uid: llm-f482fc7a7db7
+        title: "llm_record_mq_write_waiting"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "max(llm_record_mq_write_waiting)"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 100.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "MQ 写入队列积压，写入速率跟不上生产速率"
+          description: "Gateway 内部缓冲区积压（等待写入 MQ 的请求数）；持续升高说明写入速率跟不上生产速率。\n说明: 中优先级\nPromQL: max(llm_record_mq_write_waiting)\nThreshold: gt 100.0"
+          additionalA: "MQ 写入队列积压"
+          unit: "个请求"
+          valueFormat: "%.0f"
+          metricName: "llm_record_mq_write_waiting"
+          ruleUid: "llm-f482fc7a7db7"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false
+      - uid: llm-cff890d1649c
+        title: "llm_record_mq_write_duration_seconds"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "histogram_quantile(0.99, sum by (le) (rate(llm_record_mq_write_duration_seconds_bucket[5m])))"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 1.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "MQ 写入耗时过高，性能退化"
+          description: "写入 MQ（Redis Stream）的耗时分布；反映 Redis/网络/下游响应性能。\n说明: 中优先级，性能退化预警\nPromQL: histogram_quantile(0.99, sum by (le) (rate(llm_record_mq_write_duration_seconds_bucket[5m])))\nThreshold: gt 1.0"
+          additionalA: "MQ 写入耗时过高"
+          unit: "秒"
+          valueFormat: "%.2f"
+          metricName: "llm_record_mq_write_duration_seconds"
+          ruleUid: "llm-cff890d1649c"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false
+      - uid: llm-b4fcfe190fca
+        title: "llm_record_mq_write_retry_count"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "sum(rate(llm_record_mq_write_retry_count[5m]))"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 0.1
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "MQ 写入重试频繁，网络可能不稳定"
+          description: "写入 MQ 的重试累计次数；通常由网络抖动、Redis 短暂不可用导致。\n说明: 预警关注，无需深夜电话\nPromQL: sum(rate(llm_record_mq_write_retry_count[5m]))\nThreshold: gt 0.1"
+          additionalA: "MQ 写入重试频繁"
+          unit: "次/秒"
+          valueFormat: "%.4f"
+          metricName: "llm_record_mq_write_retry_count"
+          ruleUid: "llm-b4fcfe190fca"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false
+      - uid: llm-04798386bddc
+        title: "llm_request_5xx_error_rate_high"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "sum(rate(llm_request_count{status_code=~\"5..\"}[5m])) / sum(rate(llm_request_count[5m])) * 100"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "全局 5xx 错误率超过 5%，系统可用性告警"
+          description: "基于 HTTP 状态码计算错误比例；用于 P1 可用性告警与 Channel 级质量分布分析。\n说明: P1：全局 5xx 错误率 > 5%\nPromQL: sum(rate(llm_request_count{status_code=~\"5..\"}[5m])) / sum(rate(llm_request_count[5m])) * 100\nThreshold: gt 5.0"
+          additionalA: "全局 5xx 错误率过高"
+          unit: "%"
+          valueFormat: "%.2f"
+          metricName: "llm_request_count"
+          ruleUid: "llm-04798386bddc"
+        labels:
+          severity: critical
+          notify: feishu
+        isPaused: false
+      - uid: llm-3f8c7267b6c9
+        title: "channel_5xx_error_rate_high"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "sum by (service, channel) (rate(channel_llm_request_count{status_code=~\"5..\"}[5m])) / sum by (service, channel) (rate(channel_llm_request_count[5m])) * 100"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 5.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "Channel 级 5xx 错误率超过 5%"
+          description: "基于 HTTP 状态码计算错误比例；用于 P1 可用性告警与 Channel 级质量分布分析。\n说明: P2：Channel 级 5xx 错误率 > 5%\nPromQL: sum by (service, channel) (rate(channel_llm_request_count{status_code=~\"5..\"}[5m])) / sum by (service, channel) (rate(channel_llm_request_count[5m])) * 100\nThreshold: gt 5.0"
+          additionalA: "Channel 级错误率过高"
+          unit: "%"
+          valueFormat: "%.2f"
+          metricName: "channel_llm_request_count"
+          ruleUid: "llm-3f8c7267b6c9"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false
+      - uid: llm-35a6bb60531a
+        title: "llm_request_duration_high"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "histogram_quantile(0.95, sum by (le) (rate(llm_request_duration_bucket[5m])))"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 60.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "端到端延迟过高，响应时间超过 SLA"
+          description: "整次请求从开始到结束的总耗时。\n说明: 示例：P95 > 60s，按你们 SLA 调整\nPromQL: histogram_quantile(0.95, sum by (le) (rate(llm_request_duration_bucket[5m])))\nThreshold: gt 60.0"
+          additionalA: "端到端延迟过高"
+          unit: "秒"
+          valueFormat: "%.2f"
+          metricName: "llm_request_duration"
+          ruleUid: "llm-35a6bb60531a"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false
+      - uid: llm-6fdfb39428c0
+        title: "llm_ttft"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "histogram_quantile(0.90, sum by (le) (rate(llm_ttft_bucket[5m])))"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 2.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "首字延迟过高，用户体验受影响"
+          description: "用户看到第一个输出 token 的时间，直接影响\"流畅感\"（关键体验指标）。\n说明: 示例：P90 > 2s，流式场景\nPromQL: histogram_quantile(0.90, sum by (le) (rate(llm_ttft_bucket[5m])))\nThreshold: gt 2.0"
+          additionalA: "首字延迟过高"
+          unit: "秒"
+          valueFormat: "%.2f"
+          metricName: "llm_ttft"
+          ruleUid: "llm-6fdfb39428c0"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false
+      - uid: llm-033dbacf7026
+        title: "llm_chat_handler_active_count"
+        condition: B
+        data:
+          - refId: A
+            datasourceUid: prometheus
+            relativeTimeRange:
+              from: 600
+              to: 0
+            model:
+              datasource:
+                type: prometheus
+                uid: prometheus
+              editorMode: code
+              expr: "(sum(llm_chat_handler_active_count) / 100) * 100"
+              instant: true
+              intervalMs: 1000
+              legendFormat: __auto
+              maxDataPoints: 43200
+              range: false
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              datasource:
+                type: __expr__
+                uid: __expr__
+              type: classic_conditions
+              expression: A
+              conditions:
+                - evaluator:
+                    type: gt
+                    params:
+                      - 90.0
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - A
+                  reducer:
+                    type: last
+                    params: []
+                  type: query
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: B
+        noDataState: NoData
+        execErrState: Error
+        for: 1m
+        annotations:
+          summary: "并发处理数接近上限，需要扩容或限流"
+          description: "当前正在处理中的请求数量；用于判断是否需要扩容/限流。\n说明: 接近 Max Concurrency 阈值时报警，示例 90%\nPromQL: (sum(llm_chat_handler_active_count) / 100) * 100\nThreshold: gt 90.0"
+          additionalA: "并发处理数接近上限"
+          unit: "%"
+          valueFormat: "%.1f"
+          metricName: "llm_chat_handler_active_count"
+          ruleUid: "llm-033dbacf7026"
+        labels:
+          severity: warning
+          notify: feishu
+        isPaused: false

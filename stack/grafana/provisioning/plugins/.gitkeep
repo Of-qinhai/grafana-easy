@@ -1,0 +1,1 @@
+# Intentionally empty: prevent Grafana provisioning warnings about missing /etc/grafana/provisioning/plugins

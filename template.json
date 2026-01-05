@@ -1,0 +1,120 @@
+{
+  "msg_type": "interactive",
+  "card": {
+    "schema": "2.0",
+    "config": {
+      "update_multi": true
+    },
+    "header": {
+      "title": {
+        "tag": "plain_text",
+        "content": {{ printf "%q" (or .CommonAnnotations.additionalA .CommonLabels.alertname) }}
+      },
+      "text_tag_list": [
+        {
+          "tag": "text_tag",
+          "text": {
+            "tag": "plain_text",
+            "content": {{- if eq .Status `firing` -}}{{ printf "%q" "告警中" }}{{- else -}}{{ printf "%q" "已恢复" }}{{- end -}}
+          },
+          "color": "{{ if eq .Status `firing` }}red{{ else }}green{{ end }}"
+        }
+      ],
+      "template": "{{ if eq .Status `firing` }}red{{ else }}green{{ end }}",
+      "padding": "12px 8px 12px 8px"
+    },
+    "body": {
+      "direction": "vertical",
+      "elements": [
+        {
+          "tag": "column_set",
+          "flex_mode": "stretch",
+          "horizontal_spacing": "12px",
+          "horizontal_align": "left",
+          "columns": [
+            {
+              "tag": "column",
+              "width": "weighted",
+              "weight": 1,
+              "elements": [
+                {
+                  "tag": "markdown",
+                  "content": {{ printf "%q" (printf "**规则**\n%s" .CommonLabels.alertname) }}
+                }
+              ]
+            },
+            {
+              "tag": "column",
+              "width": "weighted",
+              "weight": 1,
+              "elements": [
+                {
+                  "tag": "markdown",
+                  {{- $startsAt := "" -}}
+                  {{- if gt (len .Alerts) 0 -}}
+                  {{- $startsAt = printf "%v" (index .Alerts 0).StartsAt -}}
+                  {{- end -}}
+                  "content": {{ printf "%q" (printf "**触发时间**\n%s" $startsAt) }}
+                }
+              ]
+            }
+          ],
+          "margin": "0px 0px 0px 0px"
+        },
+        {
+          "tag": "markdown",
+          "content": {{ printf "%q" (printf "**摘要**\n%s" .CommonAnnotations.summary) }},
+          "margin": "0px 0px 0px 0px"
+        },
+        {
+          "tag": "markdown",
+          "content": {{ printf "%q" (printf "**描述**\n%s" .CommonAnnotations.description) }},
+          "margin": "0px 0px 0px 0px"
+        },
+        {
+          "tag": "markdown",
+          {{- $values := "" -}}
+          {{- range .Alerts -}}
+          {{- $values = printf "%s- %s\n" $values .ValueString -}}
+          {{- end -}}
+          "content": {{ printf "%q" (printf "**当前值**\n%s" $values) }},
+          "margin": "0px 0px 0px 0px"
+        },
+        {
+          "tag": "column_set",
+          "flex_mode": "stretch",
+          "horizontal_spacing": "8px",
+          "horizontal_align": "left",
+          "columns": [
+            {
+              "tag": "column",
+              "width": "auto",
+              "elements": [
+                {
+                  "tag": "button",
+                  "text": {
+                    "tag": "plain_text",
+                    "content": "查看 Grafana"
+                  },
+                  "type": "primary_filled",
+                  "width": "default",
+                  "behaviors": [
+                    {
+                      "type": "open_url",
+                      "default_url": {{ printf "%q" .ExternalURL }}
+                    }
+                  ],
+                  "margin": "4px 0px 4px 0px"
+                }
+              ],
+              "vertical_spacing": "8px",
+              "horizontal_align": "left",
+              "vertical_align": "top"
+            }
+          ],
+          "margin": "0px 0px 0px 0px"
+        }
+      ]
+    }
+  }
+}

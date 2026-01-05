@@ -1,0 +1,12 @@
+apiVersion: 1
+
+providers:
+  - name: LocalLab
+    orgId: 1
+    folder: Local Lab
+    type: file
+    disableDeletion: true
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+
