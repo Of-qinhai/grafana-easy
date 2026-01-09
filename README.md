@@ -1,6 +1,6 @@
-# Grafana 学习笔记
+# Grafana 实践笔记
 
-本目录主要整理 Grafana 的日常使用与查询语言相关内容（以 Prometheus 数据源的 PromQL 为主）。
+本项目主要用于学习 Grafana 的日常使用与查询语言相关内容（以 Prometheus 数据源的 PromQL 为主）。
 
 BB几句，恃才傲物，文人相轻的事我们不要做，三人行，必有我师焉，谁都不可能是全知全能的神（大模型除外：））。
 
