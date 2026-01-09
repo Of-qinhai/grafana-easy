@@ -7,9 +7,22 @@ contactPoints:
       - uid: feishu-webhook
         type: webhook
         settings:
-          url: input_your_feishu_webhook_url
+          url: ${FEISHU_WEBHOOK_URL}
           httpMethod: POST
           maxAlerts: 0
           payload:
             template: '{{ template "feishu_card" . }}'
+        disableResolveMessage: false
+  - orgId: 1
+    name: email
+    receivers:
+      - uid: email
+        type: email
+        settings:
+          # 多个邮箱地址用逗号分隔，例如：
+          # addresses: user1@example.com,user2@example.com,user3@example.com
+          addresses: ${ALERT_EMAIL_ADDRESSES}
+          singleEmail: false
+          subject: '{{ template "__email_subject" . }}'
+          message: '{{ template "__email_alert_text" . }}'
         disableResolveMessage: false

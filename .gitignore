@@ -1,2 +1,15 @@
-__pycache__
+# Secrets / local env
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# OS / editor
 .DS_Store
+.idea/
+.vscode/
+*.swp

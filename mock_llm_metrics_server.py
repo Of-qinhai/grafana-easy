@@ -253,6 +253,7 @@ class Simulator:
         # Mode knobs: use --mode stress to快速触发告警阈值。
         if self._mode == "stress":
             error_prob = 0.10
+            client_cancel_prob = 0.08  # 客户端取消请求概率（499）
             mq_error_prob = 0.05
             temp_store_error_prob = 0.30
             retry_prob = 0.30
@@ -262,6 +263,7 @@ class Simulator:
             mq_write_scale = 0.8
         else:
             error_prob = 0.01
+            client_cancel_prob = 0.03  # 客户端取消请求概率（499）
             mq_error_prob = 0.002
             temp_store_error_prob = 0.05
             retry_prob = 0.05
@@ -282,6 +284,7 @@ class Simulator:
                         service=service,
                         channel=channel,
                         error_prob=error_prob,
+                        client_cancel_prob=client_cancel_prob,
                         avg_ttft=avg_ttft,
                         avg_otps=avg_otps,
                         mq_error_prob=mq_error_prob,
@@ -316,6 +319,7 @@ class Simulator:
         service: str,
         channel: str,
         error_prob: float,
+        client_cancel_prob: float,
         avg_ttft: float,
         avg_otps: float,
         mq_error_prob: float,
@@ -323,7 +327,14 @@ class Simulator:
         retry_prob: float,
         mq_write_scale: float,
     ) -> None:
-        status_code = "500" if random.random() < error_prob else "200"
+        # 状态码生成逻辑：先判断客户端取消，再判断服务器错误
+        r = random.random()
+        if r < client_cancel_prob:
+            status_code = "499"  # 客户端取消请求
+        elif r < client_cancel_prob + error_prob:
+            status_code = "500"  # 服务器错误
+        else:
+            status_code = "200"  # 正常响应
 
         input_tokens, output_tokens = self._sample_tokens()
         total_tokens = input_tokens + output_tokens

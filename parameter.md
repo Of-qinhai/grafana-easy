@@ -1,4 +1,4 @@
-# grfana alter rulese  variable
+# Grafana 告警通知模板变量速查
 
 
 很好！你已经配置好了告警规则。现在告诉你如何在飞书卡片模板中使用这些字段：

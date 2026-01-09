@@ -14,7 +14,7 @@ templates:
           "header": {
             "title": {
               "tag": "plain_text",
-              "content": {{ if .CommonAnnotations.additionalA }}{{ printf "%q" .CommonAnnotations.additionalA }}{{ else }}{{ printf "%q" .GroupLabels.alertname }}{{ end }}
+              "content": {{ if .CommonAnnotations.customTitle }}{{ printf "%q" .CommonAnnotations.customTitle }}{{ else }}{{ printf "%q" .GroupLabels.alertname }}{{ end }}
             },
             "icon": {
               "tag": "standard_icon",
@@ -49,7 +49,7 @@ templates:
                     "elements": [
                       {
                         "tag": "markdown",
-                        "content": {{ if .CommonAnnotations.ruleUid }}{{ printf "%q" (printf "**告警指标**\n[%s](%salerting/grafana/%s/view)" .GroupLabels.alertname .ExternalURL .CommonAnnotations.ruleUid) }}{{ else }}{{ printf "%q" (printf "**告警指标**\n%s" .GroupLabels.alertname) }}{{ end }}
+                        "content": {{ if .CommonAnnotations.ruleUid }}{{ printf "%q" (printf "**告警指标**\n[%s](%salerting/grafana/%s/view)" .CommonAnnotations.metricName .ExternalURL .CommonAnnotations.ruleUid) }}{{ else }}{{ printf "%q" (printf "**告警指标**\n%s" .CommonAnnotations.metricName) }}{{ end }}
                       }
                     ],
                     "vertical_spacing": "8px",
@@ -110,12 +110,12 @@ templates:
                     "elements": [
                       {
                         "tag": "markdown",
-                        "content": {{ if gt (len .Alerts) 0 }}{{ $alert := index .Alerts 0 }}{{ if $alert.Values }}{{ $v := index $alert.Values "B0" }}{{ if $v }}{{ if eq $.CommonAnnotations.unit "%" }}{{ if ge $v 80.0 }}{{ printf "%q" (printf "## <font color='red'>%.2f%%</font>" $v) }}{{ else if ge $v 50.0 }}{{ printf "%q" (printf "## <font color='orange'>%.2f%%</font>" $v) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f%%</font>" $v) }}{{ end }}{{ else if eq $.CommonAnnotations.unit "秒" }}{{ if ge $v 10.0 }}{{ printf "%q" (printf "## <font color='red'>%.2f秒</font>" $v) }}{{ else if ge $v 5.0 }}{{ printf "%q" (printf "## <font color='orange'>%.2f秒</font>" $v) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f秒</font>" $v) }}{{ end }}{{ else if eq $.CommonAnnotations.unit "次/秒" }}{{ printf "%q" (printf "## <font color='orange'>%.4f次/秒</font>" $v) }}{{ else if eq $.CommonAnnotations.unit "个请求" }}{{ printf "%q" (printf "## <font color='blue'>%.0f个</font>" $v) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f</font>" $v) }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-</font>" }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-</font>" }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-</font>" }}{{ end }},
+                        "content": {{ if gt (len .Alerts) 0 }}{{ $maxValue := 0.0 }}{{ $hasValue := false }}{{ range .Alerts }}{{ if .Values }}{{ $v := index .Values "A" }}{{ if not $v }}{{ $v = index .Values "B0" }}{{ end }}{{ if not $v }}{{ $v = index .Values "B" }}{{ end }}{{ if $v }}{{ if or (not $hasValue) (gt $v $maxValue) }}{{ $maxValue = $v }}{{ $hasValue = true }}{{ end }}{{ end }}{{ end }}{{ end }}{{ if $hasValue }}{{ $unit := "" }}{{ if $.CommonAnnotations.unit }}{{ $unit = $.CommonAnnotations.unit }}{{ end }}{{ if ge $maxValue 10.0 }}{{ if ge $maxValue 80.0 }}{{ printf "%q" (printf "## <font color='red'>%.0f%s</font>" $maxValue $unit) }}{{ else if ge $maxValue 50.0 }}{{ printf "%q" (printf "## <font color='orange'>%.0f%s</font>" $maxValue $unit) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.0f%s</font>" $maxValue $unit) }}{{ end }}{{ else if ge $maxValue 1.0 }}{{ if ge $maxValue 5.0 }}{{ printf "%q" (printf "## <font color='orange'>%.1f%s</font>" $maxValue $unit) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.1f%s</font>" $maxValue $unit) }}{{ end }}{{ else if ge $maxValue 0.01 }}{{ if ge $maxValue 0.8 }}{{ printf "%q" (printf "## <font color='red'>%.2f%s</font>" $maxValue $unit) }}{{ else if ge $maxValue 0.5 }}{{ printf "%q" (printf "## <font color='orange'>%.2f%s</font>" $maxValue $unit) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.2f%s</font>" $maxValue $unit) }}{{ end }}{{ else }}{{ if ge $maxValue 0.008 }}{{ printf "%q" (printf "## <font color='red'>%.4f%s</font>" $maxValue $unit) }}{{ else if ge $maxValue 0.005 }}{{ printf "%q" (printf "## <font color='orange'>%.4f%s</font>" $maxValue $unit) }}{{ else }}{{ printf "%q" (printf "## <font color='blue'>%.4f%s</font>" $maxValue $unit) }}{{ end }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-" }}{{ end }}{{ else }}{{ printf "%q" "## <font color='grey'>-" }}{{ end }},
                         "text_align": "center"
                       },
                       {
                         "tag": "markdown",
-                        "content": "<font color='grey'>当前值</font>",
+                        "content": {{ if .CommonAnnotations.threshold }}{{ printf "%q" (printf "<font color='grey'>阈值: %s</font>" .CommonAnnotations.threshold) }}{{ else }}{{ printf "%q" "<font color='grey'>当前值</font>" }}{{ end }},
                         "text_align": "center",
                         "text_size": "normal"
                       }
@@ -133,12 +133,12 @@ templates:
                     "elements": [
                       {
                         "tag": "markdown",
-                        "content": {{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "## <font color='red'>触发中</font>" }}{{ else }}{{ printf "%q" "## <font color='orange'>触发中</font>" }}{{ end }},
+                        "content": {{ $count := len .Alerts }}{{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" (printf "## <font color='red'>%d次</font>" $count) }}{{ else }}{{ if ge $count 3 }}{{ printf "%q" (printf "## <font color='red'>%d次</font>" $count) }}{{ else }}{{ printf "%q" (printf "## <font color='orange'>%d次</font>" $count) }}{{ end }}{{ end }},
                         "text_align": "center"
                       },
                       {
                         "tag": "markdown",
-                        "content": "<font color='grey'>当前状态</font>",
+                        "content": {{ $count := len .Alerts }}{{ if eq .CommonLabels.severity "critical" }}{{ printf "%q" "<font color='grey'>严重 · 触发次数</font>" }}{{ else }}{{ if ge $count 3 }}{{ printf "%q" "<font color='grey'>严重 · 触发次数</font>" }}{{ else }}{{ printf "%q" "<font color='grey'>告警 · 触发次数</font>" }}{{ end }}{{ end }},
                         "text_align": "center",
                         "text_size": "normal"
                       }
@@ -159,6 +159,11 @@ templates:
               {
                 "tag": "markdown",
                 "content": {{ printf "%q" (printf "**建议操作**\n%s" .CommonAnnotations.summary) }},
+                "margin": "4px 0px 4px 0px"
+              },
+              {
+                "tag": "markdown",
+                "content": {{ printf "%q" "**相关人员**\n " }},
                 "margin": "4px 0px 4px 0px"
               },
               {
@@ -199,3 +204,107 @@ templates:
           }
         }
       }
+  - orgId: 1
+    name: __email_subject
+    template: |
+      {{- if eq .Status "firing" -}}
+        {{- if eq .CommonLabels.severity "critical" -}}[紧急告警]{{- else -}}[告警通知]{{- end -}}
+      {{- else -}}[告警已恢复]{{- end -}}
+      {{- if .CommonAnnotations.customTitle }} {{ .CommonAnnotations.customTitle }}{{- else }} {{ .GroupLabels.alertname }}{{- end -}}
+  - orgId: 1
+    name: __email_alert_text
+    template: |
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 650px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.12); border: 1px solid #e8e8e8;">
+        <div style="padding: 24px 24px 20px 24px; {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}background: linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%);{{ else }}background: linear-gradient(135deg, #fa8c16 0%, #ffa940 100%);{{ end }}{{ else }}background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%);{{ end }} color: white; position: relative;">
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="width: 40px; height: 40px; background-color: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                {{ if eq .Status "firing" }}🔥{{ else }}✅{{ end }}
+              </div>
+              <div>
+                <h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3;">
+                  {{ if .CommonAnnotations.customTitle }}{{ .CommonAnnotations.customTitle }}{{ else }}{{ .GroupLabels.alertname }}{{ end }}
+                </h1>
+              </div>
+            </div>
+            <span style="display: inline-block; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; background-color: rgba(255,255,255,0.95); {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}color: #ff4d4f;{{ else }}color: #fa8c16;{{ end }}{{ else }}color: #52c41a;{{ end }} box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}紧急{{ else }}告警{{ end }}{{ else }}已恢复{{ end }}
+            </span>
+          </div>
+        </div>
+      
+        <div style="padding: 24px;">
+          <div style="display: flex; gap: 16px; margin-bottom: 24px; padding: 16px; background-color: #fafafa; border-radius: 8px; border-left: 4px solid {{ if eq .Status "firing" }}{{ if eq .CommonLabels.severity "critical" }}#ff4d4f{{ else }}#fa8c16{{ end }}{{ else }}#52c41a{{ end }};">
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: #8c8c8c; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">告警指标</div>
+              <div style="font-size: 16px; font-weight: 600; color: #262626;">
+                {{ if .CommonAnnotations.ruleUid }}
+                  <a href="{{ .ExternalURL }}alerting/grafana/{{ .CommonAnnotations.ruleUid }}/view" style="color: #1890ff; text-decoration: none; border-bottom: 1px solid #1890ff;">{{ .CommonAnnotations.metricName }}</a>
+                {{ else }}
+                  {{ .CommonAnnotations.metricName }}
+                {{ end }}
+              </div>
+            </div>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; color: #8c8c8c; margin-bottom: 6px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">触发时间</div>
+              <div style="font-size: 16px; font-weight: 600; color: #262626;">
+                {{ if gt (len .Alerts) 0 }}{{ with index .Alerts 0 }}{{ (.StartsAt.Add 28800000000000).Format "2006-01-02 15:04:05" }}{{ end }}{{ else }}暂无数据{{ end }}
+              </div>
+            </div>
+          </div>
+      
+          {{ if eq .Status "firing" }}
+          <style>
+            @media (max-width: 600px) {
+              .alert-cards-container { flex-direction: column !important; }
+              .alert-card { margin-bottom: 12px; }
+            }
+          </style>
+          <div class="alert-cards-container" style="display: flex; gap: 12px; margin: 24px 0;">
+            <div class="alert-card" style="flex: 1; background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); padding: 20px 16px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+              <div style="font-size: 28px; font-weight: 700; margin-bottom: 6px; {{ if .CommonLabels.severity }}{{ if eq .CommonLabels.severity "critical" }}color: #ff4d4f;{{ else if eq .CommonLabels.severity "warning" }}color: #fa8c16;{{ else }}color: #8c8c8c;{{ end }}{{ else }}color: #fa8c16;{{ end }}">
+                {{ if .CommonLabels.severity }}{{ if eq .CommonLabels.severity "critical" }}严重{{ else if eq .CommonLabels.severity "warning" }}警告{{ else }}{{ .CommonLabels.severity }}{{ end }}{{ else }}警告{{ end }}
+              </div>
+              <div style="font-size: 11px; color: #8c8c8c; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">告警级别</div>
+            </div>
+            <div class="alert-card" style="flex: 1; background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); padding: 20px 16px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+              <div style="font-size: 28px; font-weight: 700; margin-bottom: 6px; {{ if gt (len .Alerts) 0 }}{{ $maxValue := 0.0 }}{{ $hasValue := false }}{{ range .Alerts }}{{ if .Values }}{{ $v := index .Values "A" }}{{ if not $v }}{{ $v = index .Values "B0" }}{{ end }}{{ if not $v }}{{ $v = index .Values "B" }}{{ end }}{{ if $v }}{{ if or (not $hasValue) (gt $v $maxValue) }}{{ $maxValue = $v }}{{ $hasValue = true }}{{ end }}{{ end }}{{ end }}{{ end }}{{ if $hasValue }}{{ if ge $maxValue 80.0 }}color: #ff4d4f;{{ else if ge $maxValue 50.0 }}color: #fa8c16;{{ else if ge $maxValue 10.0 }}color: #1890ff;{{ else if ge $maxValue 5.0 }}color: #fa8c16;{{ else if ge $maxValue 1.0 }}color: #1890ff;{{ else if ge $maxValue 0.8 }}color: #ff4d4f;{{ else if ge $maxValue 0.5 }}color: #fa8c16;{{ else if ge $maxValue 0.008 }}color: #1890ff;{{ else if ge $maxValue 0.005 }}color: #ff4d4f;{{ else }}color: #1890ff;{{ end }}{{ else }}color: #8c8c8c;{{ end }}{{ else }}color: #8c8c8c;{{ end }}">
+                {{ if gt (len .Alerts) 0 }}{{ $maxValue := 0.0 }}{{ $hasValue := false }}{{ range .Alerts }}{{ if .Values }}{{ $v := index .Values "A" }}{{ if not $v }}{{ $v = index .Values "B0" }}{{ end }}{{ if not $v }}{{ $v = index .Values "B" }}{{ end }}{{ if $v }}{{ if or (not $hasValue) (gt $v $maxValue) }}{{ $maxValue = $v }}{{ $hasValue = true }}{{ end }}{{ end }}{{ end }}{{ end }}{{ if $hasValue }}{{ $unit := "" }}{{ if .CommonAnnotations.unit }}{{ $unit = .CommonAnnotations.unit }}{{ end }}{{ if ge $maxValue 10.0 }}{{ printf "%.0f%s" $maxValue $unit }}{{ else if ge $maxValue 1.0 }}{{ printf "%.1f%s" $maxValue $unit }}{{ else if ge $maxValue 0.01 }}{{ printf "%.2f%s" $maxValue $unit }}{{ else }}{{ printf "%.4f%s" $maxValue $unit }}{{ end }}{{ else }}-{{ end }}{{ else }}-{{ end }}
+              </div>
+              <div style="font-size: 11px; color: #8c8c8c; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ if .CommonAnnotations.threshold }}阈值: {{ .CommonAnnotations.threshold }}{{ else }}当前值{{ end }}</div>
+            </div>
+            <div class="alert-card" style="flex: 1; background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); padding: 20px 16px; border-radius: 10px; text-align: center; border: 2px solid #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+              <div style="font-size: 28px; font-weight: 700; margin-bottom: 6px; {{ $count := len .Alerts }}{{ if eq .CommonLabels.severity "critical" }}color: #ff4d4f;{{ else }}{{ if ge $count 3 }}color: #ff4d4f;{{ else }}color: #fa8c16;{{ end }}{{ end }}">
+                {{ len .Alerts }}次
+              </div>
+              <div style="font-size: 11px; color: #8c8c8c; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ $count := len .Alerts }}{{ if eq .CommonLabels.severity "critical" }}严重触发{{ else }}{{ if ge $count 3 }}严重触发{{ else }}告警触发{{ end }}{{ end }}</div>
+            </div>
+          </div>
+          {{ end }}
+      
+          <div style="margin: 24px 0; padding: 16px; background-color: #f6f8fa; border-radius: 8px; border-left: 3px solid #1890ff;">
+            <div style="font-weight: 700; margin-bottom: 10px; color: #262626; font-size: 14px;">
+              告警描述
+            </div>
+            <div style="color: #595959; line-height: 1.7; font-size: 14px;">{{ .CommonAnnotations.description }}</div>
+          </div>
+      
+          <div style="margin: 24px 0; padding: 16px; background-color: #fffbe6; border-radius: 8px; border-left: 3px solid #faad14;">
+            <div style="font-weight: 700; margin-bottom: 10px; color: #262626; font-size: 14px;">
+              建议操作
+            </div>
+            <div style="color: #595959; line-height: 1.7; font-size: 14px;">{{ .CommonAnnotations.summary }}</div>
+          </div>
+      
+          <div style="text-align: center; margin-top: 28px;">
+            <a href="{{ .ExternalURL }}a/grafana-metricsdrilldown-app/drilldown?from=now-1h&to=now&metric={{ .CommonAnnotations.metricName }}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(24,144,255,0.3); transition: all 0.3s;">
+              查看 Grafana 面板
+            </a>
+          </div>
+        </div>
+      
+        <div style="padding: 16px 24px; background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%); text-align: center; font-size: 12px; color: #8c8c8c; border-top: 1px solid #e8e8e8;">
+          <div style="margin-bottom: 4px;">此邮件由 Grafana 自动发送</div>
+          <div style="color: #bfbfbf;">{{ .ExternalURL }}</div>
+        </div>
+      </div>

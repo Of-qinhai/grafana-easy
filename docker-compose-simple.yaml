@@ -1,0 +1,35 @@
+services:
+  prometheus-simple:
+    image: prom/prometheus:v2.54.1
+    container_name: learning-prometheus-simple
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d
+    volumes:
+      - prometheus_data_simple:/prometheus
+      - ./stack/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9091:9090"
+    restart: unless-stopped
+
+  grafana-simple:
+    image: grafana/grafana-oss:12.3.1
+    container_name: learning-grafana-simple
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GF_SECURITY_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GF_SECURITY_ADMIN_PASSWORD:-admin123}"
+      GF_METRICS_ENABLED: "true"
+      GF_SERVER_ROOT_URL: "${GF_SERVER_ROOT_URL:-http://localhost:10003/}"
+    volumes:
+      - grafana_data_simple:/var/lib/grafana
+    ports:
+      - "10003:3000"
+    depends_on:
+      - prometheus-simple
+    restart: unless-stopped
+
+volumes:
+  prometheus_data_simple:
+  grafana_data_simple:
+

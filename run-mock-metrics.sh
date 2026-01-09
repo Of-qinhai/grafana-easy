@@ -5,5 +5,11 @@ set -euo pipefail
 MODE="${1:-stress}"
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
-exec python3 "${SCRIPT_DIR}/mock_llm_metrics_server.py" --mode "${MODE}"
+
+# 增加多个 channels 和 services，以便产生多个告警实例
+exec python3 "${SCRIPT_DIR}/mock_llm_metrics_server.py" \
+  --mode "${MODE}" \
+  --channels "openai,anthropic,azure,cohere" \
+  --services "llm-api,llm-gateway" \
+  --base-qps 5.0
 

@@ -17,15 +17,25 @@ services:
     image: grafana/grafana-oss:12.3.1
     container_name: learning-grafana
     environment:
-      GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: "${GF_SECURITY_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GF_SECURITY_ADMIN_PASSWORD:-admin123}"
       GF_METRICS_ENABLED: "true"
-      GF_SERVER_ROOT_URL: "http://localhost:10002/"
+      GF_SERVER_ROOT_URL: "${GF_SERVER_ROOT_URL:-http://localhost:10002/}"
       FEISHU_WEBHOOK_URL: "${FEISHU_WEBHOOK_URL:-http://host.docker.internal:18081/feishu-webhook}"
+      ALERT_EMAIL_ADDRESSES: "${ALERT_EMAIL_ADDRESSES:-example@qq.com}"
+      # SMTP 配置
+      GF_SMTP_ENABLED: "${GF_SMTP_ENABLED:-true}"
+      GF_SMTP_HOST: "${GF_SMTP_HOST:-smtp.qq.com:587}"
+      GF_SMTP_USER: "${GF_SMTP_USER:-example@qq.com}"
+      GF_SMTP_PASSWORD: "${QQ_MAIL_AUTH_CODE}"
+      GF_SMTP_FROM_ADDRESS: "${GF_SMTP_FROM_ADDRESS:-example@qq.com}"
+      GF_SMTP_FROM_NAME: "${GF_SMTP_FROM_NAME:-Grafana 告警通知}"
+      GF_SMTP_SKIP_VERIFY: "${GF_SMTP_SKIP_VERIFY:-false}"
     volumes:
       - grafana_data:/var/lib/grafana
       - ./stack/grafana/provisioning:/etc/grafana/provisioning:ro
       - ./stack/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./stack/grafana/emails/ng_alert_notification.html:/usr/share/grafana/public/emails/ng_alert_notification.html:ro
     ports:
       - "10002:3000"
     depends_on:
@@ -35,3 +45,4 @@ services:
 volumes:
   prometheus_data:
   grafana_data:
+
