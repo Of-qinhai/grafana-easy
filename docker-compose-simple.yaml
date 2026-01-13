@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
   grafana-simple:
-    image: grafana/grafana-oss:12.3.1
+    image: grafana/grafana:main
     container_name: learning-grafana-simple
     environment:
       GF_SECURITY_ADMIN_USER: "${GF_SECURITY_ADMIN_USER:-admin}"
